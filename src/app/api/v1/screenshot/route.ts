@@ -34,7 +34,7 @@ export async function POST(request: Request) {
       args: isProd ? chromium.args : ['--no-sandbox', '--disable-setuid-sandbox'],
       defaultViewport: { width: 1280, height: 720 },
       executablePath: executablePath,
-      headless: isProd ? chromium.headless : true,
+      headless: true,
     });
 
     const page = await browser.newPage();
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
 
     await browser.close();
 
-    return new NextResponse(screenshot, {
+    return new NextResponse(Buffer.from(screenshot), {
       status: 200,
       headers: {
         ...corsHeaders,
