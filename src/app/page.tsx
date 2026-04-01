@@ -6,13 +6,13 @@ export default function Home() {
       {/* Navbar */}
       <nav className="navbar">
         <div className="logo">
-          <div className="logo-icon"></div>
+          <img src="/assets/logo.png" alt="Neural Architect Logo" style={{ height: '40px', width: 'auto' }} />
           Neural Architect
         </div>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
           <a href="#stats" style={{ color: '#94A3B8', textDecoration: 'none', fontSize: '0.875rem' }}>Features</a>
           <a href="#pricing" style={{ color: '#94A3B8', textDecoration: 'none', fontSize: '0.875rem' }}>Pricing</a>
-          <a href="#github" className="btn btn-purple" style={{ padding: '0.5rem 1.25rem', fontSize: '0.875rem' }}>Get API Key</a>
+          <a href="#pricing" className="btn btn-purple" style={{ padding: '0.5rem 1.25rem', fontSize: '0.875rem' }}>Get API Key</a>
         </div>
       </nav>
 
@@ -90,9 +90,9 @@ export default function Home() {
           {/* Starter */}
           <div className="card pricing-card">
             <h4>Starter</h4>
-            <div className="price">$59<span>/mo</span></div>
+            <div className="price">$0<span>/mo</span></div>
             <ul className="pricing-list">
-              <li>1,000 API Requests</li>
+              <li>100 API Requests</li>
               <li>Basic Profile Deep-Scrape</li>
               <li>Intent Detection Alpha</li>
               <li>Email Support</li>
@@ -104,7 +104,7 @@ export default function Home() {
           <div className="card pricing-card pricing-featured">
             <span className="badge">Most Popular</span>
             <h4>Growth</h4>
-            <div className="price">$59<span>/mo</span></div>
+            <div className="price">$29<span>/mo</span></div>
             <ul className="pricing-list">
               <li>10,000 API Requests</li>
               <li>Advanced Consultant Insights</li>
@@ -117,7 +117,7 @@ export default function Home() {
           {/* Business */}
           <div className="card pricing-card">
             <h4>Business</h4>
-            <div className="price">$59<span>/mo</span></div>
+            <div className="price">$129<span>/mo</span></div>
             <ul className="pricing-list">
               <li>25,000 API Requests</li>
               <li>Unlimited Team Members</li>
