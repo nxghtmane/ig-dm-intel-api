@@ -137,14 +137,17 @@ export default function NeuralArchitectLanding() {
               Get API Key
               <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </button>
-            <button className="flex items-center justify-center gap-2 px-8 py-4 text-base font-semibold text-gray-300 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-colors">
+            <button 
+              onClick={() => document.getElementById('docs')?.scrollIntoView({ behavior: 'smooth' })}
+              className="flex items-center justify-center gap-2 px-8 py-4 text-base font-semibold text-gray-300 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-colors"
+            >
               Read Documentation
             </button>
           </div>
         </div>
 
         {/* Code Demo Section */}
-        <div className="relative z-10 w-full mt-24 lg:mt-32">
+        <div id="docs" className="relative z-10 w-full mt-24 lg:mt-32">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
             
             {/* cURL Request */}
