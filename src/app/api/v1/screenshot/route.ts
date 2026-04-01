@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
-import puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer-core';
+import chromium from '@sparticuz/chromium';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-api-key',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, x-api-key',
 };
 
 export async function OPTIONS() {
@@ -12,42 +13,46 @@ export async function OPTIONS() {
 }
 
 export async function POST(request: Request) {
-  let browser;
+  let browser = null;
   try {
-    const body = await request.json();
-    const targetUrl = body.url;
+    const { url } = await request.json();
 
-    if (!targetUrl) {
-      return NextResponse.json({ error: 'Missing URL' }, { status: 400, headers: corsHeaders });
+    if (!url) {
+      return NextResponse.json({ error: 'Missing url' }, { status: 400, headers: corsHeaders });
     }
 
+    // Determine executable path based on environment
+    const isProd = process.env.NODE_ENV === 'production';
+    
+    // For Local, set a default Chrome path for Windows (most common for the user)
+    // For Production, use the @sparticuz/chromium helper
+    const executablePath = isProd 
+      ? await chromium.executablePath() 
+      : 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
+
     browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      args: isProd ? chromium.args : ['--no-sandbox', '--disable-setuid-sandbox'],
+      defaultViewport: { width: 1280, height: 720 },
+      executablePath: executablePath,
+      headless: isProd ? chromium.headless : true,
     });
-    
+
     const page = await browser.newPage();
-    await page.setViewport({ width: 1280, height: 720 });
-    
-    await page.goto(targetUrl, { waitUntil: 'networkidle0' });
-    
-    const screenshotBuffer = await page.screenshot({ type: 'png' });
-    
+    await page.goto(url, { waitUntil: 'networkidle0' });
+    const screenshot = await page.screenshot({ type: 'png' });
+
     await browser.close();
 
-    return new NextResponse(screenshotBuffer, {
+    return new NextResponse(screenshot, {
       status: 200,
       headers: {
         ...corsHeaders,
         'Content-Type': 'image/png',
-        'Content-Length': screenshotBuffer.length.toString(),
       },
     });
   } catch (error) {
-    console.error('Screenshot render error:', error);
-    if (browser) {
-      await browser.close();
-    }
-    return NextResponse.json({ error: 'Render failure' }, { status: 500, headers: corsHeaders });
+    console.error('Screenshot Error:', error);
+    if (browser) await browser.close();
+    return NextResponse.json({ error: 'Render failure or invalid request' }, { status: 500, headers: corsHeaders });
   }
 }
