@@ -132,17 +132,19 @@ export default function NeuralArchitectLanding() {
           <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
             <button 
               onClick={() => setIsModalOpen(true)}
-              className="group relative flex items-center justify-center gap-2 px-8 py-4 text-base font-semibold text-white rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 transition-all shadow-[0_0_40px_-10px_rgba(139,92,246,0.5)] hover:shadow-[0_0_60px_-10px_rgba(139,92,246,0.6)]"
+              className="group relative flex items-center justify-center gap-2 px-8 py-4 text-base font-semibold text-white rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 transition-all shadow-[0_0_40_px_-10px_rgba(139,92,246,0.5)] hover:shadow-[0_0_60px_-10px_rgba(139,92,246,0.6)]"
             >
               Get API Key
               <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </button>
-            <button 
-              onClick={() => document.getElementById('docs')?.scrollIntoView({ behavior: 'smooth' })}
+            <a 
+              href="https://github.com/nxghtmane/ig-dm-intel-api"
+              target="_blank"
+              rel="noopener noreferrer"
               className="flex items-center justify-center gap-2 px-8 py-4 text-base font-semibold text-gray-300 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-colors"
             >
               Read Documentation
-            </button>
+            </a>
           </div>
         </div>
 
@@ -245,7 +247,7 @@ export default function NeuralArchitectLanding() {
 
       {/* Footer (Minimalist) */}
       <footer className="border-t border-white/10 py-8 text-center">
-        <p className="text-sm text-gray-600">© 2024 Neural Architect API. Built for high-ticket setters.</p>
+        <p className="text-sm text-gray-600">© 2026 Neural Architect API. Built for high-ticket setters.</p>
       </footer>
 
       {/* API Key Modal */}
