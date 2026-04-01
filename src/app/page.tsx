@@ -1,141 +1,336 @@
-import React from 'react';
+'use client';
 
-export default function Home() {
+import React, { useState } from 'react';
+import { Terminal, Code2, Zap, Check, X, Loader2, Cpu, ChevronRight } from 'lucide-react';
+import { generateApiKeyAction } from './actions/api-keys';
+
+// --- Types ---
+type PricingTier = {
+  name: string;
+  price: string;
+  requests: string;
+  features: string[];
+  isPopular?: boolean;
+};
+
+// --- Mock Data ---
+const PRICING_TIERS: PricingTier[] = [
+  {
+    name: 'Starter',
+    price: '$0',
+    requests: '100 Requests/mo',
+    features: ['Basic Profile Analysis', 'Standard Latency', 'Community Support'],
+  },
+  {
+    name: 'Growth',
+    price: '$29',
+    requests: '10,000 Requests/mo',
+    features: ['DM Intent Detection', 'Low Latency', 'Email Support', 'Webhook Access'],
+    isPopular: true,
+  },
+  {
+    name: 'Business',
+    price: '$129',
+    requests: '25,000 Requests/mo',
+    features: ['Consultant Insights Engine', 'Zero Latency', 'Dedicated Account Manager', 'Custom Models'],
+  },
+];
+
+// --- Components ---
+
+const Logo = () => (
+  <div className="flex items-center gap-2">
+    <div className="relative flex items-center justify-center w-8 h-8 overflow-hidden rounded-lg border border-white/10 bg-[#0B0F19]">
+      <img src="/assets/logo.png" alt="Neural Architect Logo" className="w-full h-full object-contain" />
+    </div>
+    <span className="text-xl font-bold tracking-tight text-white font-['Space_Grotesk']">
+      Neural Architect
+    </span>
+  </div>
+);
+
+const TerminalWindow = ({ title, children }: { title: string, children: React.ReactNode }) => (
+  <div className="flex flex-col w-full overflow-hidden rounded-xl bg-[#050812] border border-white/10 shadow-2xl">
+    <div className="flex items-center px-4 py-3 border-b border-white/5 bg-white/[0.02]">
+      <div className="flex gap-2">
+        <div className="w-3 h-3 rounded-full bg-red-500/80" />
+        <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
+        <div className="w-3 h-3 rounded-full bg-green-500/80" />
+      </div>
+      <span className="ml-4 text-xs font-mono text-gray-500">{title}</span>
+    </div>
+    <div className="p-6 overflow-x-auto text-sm font-mono leading-relaxed text-gray-300">
+      {children}
+    </div>
+  </div>
+);
+
+export default function NeuralArchitectLanding() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [email, setEmail] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [generatedKey, setGeneratedKey] = useState('');
+
+  const handleGetApiKey = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+
+    setIsSubmitting(true);
+    
+    try {
+      const response = await generateApiKeyAction(email);
+
+      if (!response.success) {
+        throw new Error(response.error);
+      }
+
+      setGeneratedKey(response.key!);
+      setSubmitSuccess(true);
+    } catch (err: any) {
+      console.error('Error generating key:', err.message);
+      alert('Error generating key. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <div className="container">
-      {/* Navbar */}
-      <nav className="navbar">
-        <div className="logo">
-          <img src="/assets/logo.png" alt="Neural Architect Logo" style={{ height: '40px', width: 'auto' }} />
-          Neural Architect
-        </div>
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-          <a href="#stats" style={{ color: '#94A3B8', textDecoration: 'none', fontSize: '0.875rem' }}>Features</a>
-          <a href="#pricing" style={{ color: '#94A3B8', textDecoration: 'none', fontSize: '0.875rem' }}>Pricing</a>
-          <a href="#pricing" className="btn btn-purple" style={{ padding: '0.5rem 1.25rem', fontSize: '0.875rem' }}>Get API Key</a>
-        </div>
-      </nav>
-
-      {/* Hero Section */}
-      <header className="hero">
-        <h1 className="hero-title">
-          Automate Your <br />
-          <span className="gradient-text">Instagram Intelligence</span>
-        </h1>
-        <p className="hero-subtitle">
-          The definitive cold DM engine for coaches and consultants. 
-          Analyze profiles, detect buying intent, and extract high-value insights with neural-precision API calls.
-        </p>
-        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-          <a href="#pricing" className="btn btn-purple">Start Building Now</a>
-          <a href="#docs" className="btn btn-outline">Read Documentation</a>
-        </div>
+    <div className="min-h-screen bg-[#0B0F19] text-white selection:bg-purple-500/30 font-['Inter']">
+      
+      {/* Extremely Minimal Header */}
+      <header className="absolute top-0 left-0 right-0 p-6 md:p-8 flex justify-between items-center z-40 max-w-7xl mx-auto">
+        <Logo />
+        <button 
+          onClick={() => setIsModalOpen(true)}
+          className="px-4 py-2 text-sm font-medium rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors"
+        >
+          Developer Login
+        </button>
       </header>
 
-      {/* Decision Intelligence Section */}
-      <section id="stats" className="section">
-        <h2 className="section-title">Decision Intelligence</h2>
-        <div className="grid-3">
-          <div className="card">
-            <div className="card-icon bg-purple">⚡</div>
-            <h3>DM Intent Detection</h3>
-            <p style={{ color: '#94A3B8', marginTop: '1rem' }}>
-              Our LLM-powered layer analyzes incoming messages to score leads based on urgency, 
-              budget signals, and technical sophistication.
-            </p>
-          </div>
-          <div className="card">
-            <div className="card-icon bg-cyan">👤</div>
-            <h3>Profile Analysis</h3>
-            <p style={{ color: '#94A3B8', marginTop: '1rem' }}>
-              Deep-scrape bio, follower quality, and content sentiment to identify your ideal 
-              avatar before you ever hit send.
-            </p>
-          </div>
-          <div className="card">
-            <div className="card-icon bg-blue">📊</div>
-            <h3>Consultant Insights</h3>
-            <p style={{ color: '#94A3B8', marginTop: '1rem' }}>
-              Industry-specific tagging: identifies if a lead is a coach, agency owner, or 
-              enterprise decision maker.
-            </p>
-          </div>
-        </div>
-      </section>
+      <main className="relative flex flex-col items-center justify-center px-6 pt-32 pb-24 mx-auto max-w-7xl lg:pt-48">
+        
+        {/* Background Glow */}
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-purple-600/20 blur-[120px] rounded-full pointer-events-none" />
 
-      {/* Integration Code Section */}
-      <section id="docs" className="section">
-        <div className="card" style={{ maxWidth: '900px', margin: '0 auto', background: '#000' }}>
-          <h3 style={{ marginBottom: '1.5rem' }}>Seamless Architecture</h3>
-          <p style={{ color: '#94A3B8', marginBottom: '2rem' }}>
-             Designed for 99.9% uptime. Integrate with your existing CRM or outreach tool with just four lines of code.
+        {/* Hero Section */}
+        <div className="relative z-10 flex flex-col items-center max-w-4xl text-center">
+          <h1 
+            className="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 leading-tight font-['Space_Grotesk']"
+          >
+            Automate Your <br className="hidden md:block" />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500">
+              Instagram Intelligence
+            </span>
+          </h1>
+          
+          <p className="max-w-2xl text-lg md:text-xl text-gray-400 mb-10 leading-relaxed">
+            The definitive cold DM engine for coaches and consultants. Analyze profiles, detect buying intent, and extract high-value insights with neural-precision API calls.
           </p>
-          <div className="code-container">
-            <div className="code-line"><span className="code-cmt">// Initialize Neural Architect</span></div>
-            <div className="code-line">
-              <span className="code-key">const</span> response = <span className="code-key">await</span> fetch(<span className="code-val">'https://api.neuralarch.ai/v1/analyze'</span>, &#123;
+
+          <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+            <button 
+              onClick={() => setIsModalOpen(true)}
+              className="group relative flex items-center justify-center gap-2 px-8 py-4 text-base font-semibold text-white rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 transition-all shadow-[0_0_40px_-10px_rgba(139,92,246,0.5)] hover:shadow-[0_0_60px_-10px_rgba(139,92,246,0.6)]"
+            >
+              Get API Key
+              <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </button>
+            <button className="flex items-center justify-center gap-2 px-8 py-4 text-base font-semibold text-gray-300 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-colors">
+              Read Documentation
+            </button>
+          </div>
+        </div>
+
+        {/* Code Demo Section */}
+        <div className="relative z-10 w-full mt-24 lg:mt-32">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+            
+            {/* cURL Request */}
+            <div className="group relative">
+              <div className="absolute -inset-1 rounded-xl bg-gradient-to-r from-cyan-500/20 to-blue-500/20 opacity-0 group-hover:opacity-100 blur transition duration-500" />
+              <TerminalWindow title="request.sh">
+                <pre>
+                  <span className="text-pink-400">curl</span> <span className="text-gray-300">-X POST</span> https://api.neuralarch.ai/v1/analyze \<br/>
+                  &nbsp;&nbsp;<span className="text-gray-300">-H</span> <span className="text-green-300">"x-api-key: YOUR_API_KEY"</span> \<br/>
+                  &nbsp;&nbsp;<span className="text-gray-300">-H</span> <span className="text-green-300">"Content-Type: application/json"</span> \<br/>
+                  &nbsp;&nbsp;<span className="text-gray-300">-d</span> <span className="text-green-300">'{'{'}"handle": "target_prospect"{'}'}'</span>
+                </pre>
+              </TerminalWindow>
             </div>
-            <div className="code-line">&nbsp;&nbsp;method: <span className="code-val">'POST'</span>,</div>
-            <div className="code-line">&nbsp;&nbsp;headers: &#123; <span className="code-val">'x-api-key'</span>: <span className="code-val">'sk_live_...'</span> &#125;,</div>
-            <div className="code-line">&nbsp;&nbsp;body: JSON.stringify(&#123; <span className="code-val">ig_handle</span>: <span className="code-val">'arch.design'</span> &#125;)</div>
-            <div className="code-line">&#125;);</div>
+
+            {/* JSON Response */}
+            <div className="group relative">
+              <div className="absolute -inset-1 rounded-xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 blur transition duration-500" />
+              <TerminalWindow title="response.json">
+                <pre>
+                  <span className="text-gray-300">{'{'}</span><br/>
+                  &nbsp;&nbsp;<span className="text-blue-300">"status"</span>: <span className="text-green-300">"success"</span>,<br/>
+                  &nbsp;&nbsp;<span className="text-blue-300">"data"</span>: {'{'}<br/>
+                  &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-blue-300">"handle"</span>: <span className="text-green-300">"target_prospect"</span>,<br/>
+                  &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-blue-300">"intent_score"</span>: <span className="text-purple-400">87</span>,<br/>
+                  &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-blue-300">"niche"</span>: <span className="text-green-300">"B2B SaaS Consulting"</span>,<br/>
+                  &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-blue-300">"pain_points"</span>: [<span className="text-green-300">"Lead gen bottlenecks"</span>, <span className="text-green-300">"High churn"</span>],<br/>
+                  &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-blue-300">"suggested_opener"</span>: <span className="text-green-300">"Hey [Name], I noticed..."</span><br/>
+                  &nbsp;&nbsp;{'}'}<br/>
+                  <span className="text-gray-300">{'}'}</span>
+                </pre>
+              </TerminalWindow>
+            </div>
+
           </div>
         </div>
-      </section>
 
-      {/* Pricing Section */}
-      <section id="pricing" className="section">
-        <h2 className="section-title">Scale Your Outreach</h2>
-        <div className="grid-3">
-          {/* Starter */}
-          <div className="card pricing-card">
-            <h4>Starter</h4>
-            <div className="price">$0<span>/mo</span></div>
-            <ul className="pricing-list">
-              <li>100 API Requests</li>
-              <li>Basic Profile Deep-Scrape</li>
-              <li>Intent Detection Alpha</li>
-              <li>Email Support</li>
-            </ul>
-            <a href="#" className="btn btn-outline" style={{ marginTop: 'auto' }}>Get Started</a>
+        {/* Pricing Section */}
+        <div className="relative z-10 w-full mt-32">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 font-['Space_Grotesk'] text-white">
+              Simple, scalable pricing
+            </h2>
+            <p className="text-gray-400">Start for free, scale when you close deals.</p>
           </div>
 
-          {/* Growth - Featured */}
-          <div className="card pricing-card pricing-featured">
-            <span className="badge">Most Popular</span>
-            <h4>Growth</h4>
-            <div className="price">$29<span>/mo</span></div>
-            <ul className="pricing-list">
-              <li>10,000 API Requests</li>
-              <li>Advanced Consultant Insights</li>
-              <li>Priority Webhook Support</li>
-              <li>Custom Lead Scoring</li>
-            </ul>
-            <a href="#" className="btn btn-purple" style={{ marginTop: 'auto' }}>Start Building</a>
-          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {PRICING_TIERS.map((tier) => (
+              <div 
+                key={tier.name}
+                className={`relative flex flex-col p-8 rounded-2xl border ${
+                  tier.isPopular 
+                    ? 'bg-white/10 border-purple-500/50 shadow-[0_0_30px_-10px_rgba(139,92,246,0.3)]' 
+                    : 'bg-white/5 border-white/10'
+                } backdrop-blur-sm`}
+              >
+                {tier.isPopular && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 text-xs font-semibold tracking-wider text-purple-200 uppercase bg-purple-600 rounded-full">
+                    Most Popular
+                  </div>
+                )}
+                
+                <h3 className="text-xl font-medium text-gray-300 mb-2">{tier.name}</h3>
+                <div className="flex items-baseline gap-2 mb-2">
+                  <span className="text-4xl font-bold">{tier.price}</span>
+                  <span className="text-sm text-gray-500">/mo</span>
+                </div>
+                <p className="text-sm text-cyan-400 font-mono mb-8">{tier.requests}</p>
+                
+                <ul className="flex flex-col gap-4 mb-8 flex-grow">
+                  {tier.features.map((feature) => (
+                    <li key={feature} className="flex items-center gap-3 text-sm text-gray-300">
+                      <Check className="w-4 h-4 text-purple-400 shrink-0" />
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
 
-          {/* Business */}
-          <div className="card pricing-card">
-            <h4>Business</h4>
-            <div className="price">$129<span>/mo</span></div>
-            <ul className="pricing-list">
-              <li>25,000 API Requests</li>
-              <li>Unlimited Team Members</li>
-              <li>Custom Sentiment Models</li>
-              <li>24/7 Dedicated Support</li>
-            </ul>
-            <a href="#" className="btn btn-outline" style={{ marginTop: 'auto' }}>Contact Sales</a>
+                <button 
+                  onClick={() => setIsModalOpen(true)}
+                  className={`w-full py-3 rounded-lg font-medium transition-colors ${
+                    tier.isPopular 
+                      ? 'bg-purple-600 hover:bg-purple-500 text-white' 
+                      : 'bg-white/5 hover:bg-white/10 text-white border border-white/10'
+                  }`}
+                >
+                  {tier.price === '$0' ? 'Start Free' : 'Get Started'}
+                </button>
+              </div>
+            ))}
           </div>
         </div>
-      </section>
 
-      {/* Footer */}
-      <footer className="footer">
-        <div className="container">
-          <p>&copy; {new Date().getFullYear()} Neural Architect. Build with intelligence.</p>
-          <p style={{ marginTop: '0.5rem' }}>Support: sangi.owned@gmail.com</p>
-        </div>
+      </main>
+
+      {/* Footer (Minimalist) */}
+      <footer className="border-t border-white/10 py-8 text-center">
+        <p className="text-sm text-gray-600">© 2024 Neural Architect API. Built for high-ticket setters.</p>
       </footer>
+
+      {/* API Key Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div 
+            className="relative w-full max-w-md p-8 overflow-hidden bg-[#0a0d14] border border-white/10 rounded-2xl shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Glow */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200px] h-[100px] bg-purple-600/30 blur-[60px] pointer-events-none" />
+
+            <button 
+              onClick={() => setIsModalOpen(false)}
+              className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="relative z-10">
+              <div className="flex justify-center mb-6">
+                 <div className="p-3 bg-purple-500/10 rounded-xl border border-purple-500/20">
+                    <Zap className="w-8 h-8 text-purple-400" />
+                 </div>
+              </div>
+              
+              <h3 className="text-2xl font-bold text-center mb-2 font-['Space_Grotesk'] text-white">
+                Get Your API Key
+              </h3>
+              <p className="text-center text-gray-400 mb-8 text-sm leading-relaxed">
+                Enter your email address to generate your free <span className="text-cyan-400 font-bold">Starter</span> key. 
+                Your key will be displayed immediately.
+              </p>
+
+              {submitSuccess ? (
+                <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-xl text-center">
+                  <p className="text-green-400 font-medium mb-4">API Key Generated Successfully!</p>
+                  <code className="block p-3 bg-black/50 border border-white/10 rounded-lg text-xs break-all text-gray-300 font-mono">
+                    {generatedKey}
+                  </code>
+                  <button 
+                    onClick={() => {
+                        navigator.clipboard.writeText(generatedKey);
+                        alert('Copied to clipboard!');
+                    }}
+                    className="mt-4 text-xs text-purple-400 hover:text-purple-300 font-medium uppercase tracking-wider"
+                  >
+                    Copy to Clipboard
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleGetApiKey} className="flex flex-col gap-4">
+                  <div>
+                    <label htmlFor="email" className="sr-only">Email address</label>
+                    <input
+                      type="email"
+                      id="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="developer@company.com"
+                      required
+                      className="w-full px-4 py-3 bg-black/50 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/50 text-white placeholder-gray-500 transition-all font-sans"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="flex items-center justify-center w-full py-3 text-sm font-semibold text-white transition-all bg-purple-600 rounded-xl hover:bg-purple-500 disabled:opacity-70 disabled:cursor-not-allowed shadow-[0_4px_20px_rgba(157,80,255,0.3)]"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Generating Your Key...
+                      </>
+                    ) : (
+                      'Generate Free Key'
+                    )}
+                  </button>
+                </form>
+              )}
+              
+              <p className="mt-6 text-[10px] text-center text-gray-600 uppercase tracking-widest">
+                Protected by Neural Architect Security
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
