@@ -11,7 +11,12 @@ type PricingTier = {
   requests: string;
   features: string[];
   isPopular?: boolean;
+  priceId?: string;
 };
+
+// --- Price IDs from Stripe ---
+const GROWTH_PRICE_ID = 'price_1THUd80zW5J1mpgFQwBCcvKs';
+const BUSINESS_PRICE_ID = 'price_1THUeK0zW5J1mpgFTIXd5AZX';
 
 // --- Mock Data ---
 const PRICING_TIERS: PricingTier[] = [
@@ -27,12 +32,14 @@ const PRICING_TIERS: PricingTier[] = [
     requests: '10,000 Requests/mo',
     features: ['DM Intent Detection', 'Low Latency', 'Email Support', 'Webhook Access'],
     isPopular: true,
+    priceId: GROWTH_PRICE_ID,
   },
   {
     name: 'Business',
     price: '$129',
     requests: '25,000 Requests/mo',
     features: ['Consultant Insights Engine', 'Zero Latency', 'Dedicated Account Manager', 'Custom Models'],
+    priceId: BUSINESS_PRICE_ID,
   },
 ];
 
@@ -71,6 +78,32 @@ export default function NeuralArchitectLanding() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [generatedKey, setGeneratedKey] = useState('');
+  const [selectedTierPriceId, setSelectedTierPriceId] = useState<string | null>(null);
+
+  const handleCheckout = async (priceId: string) => {
+    if (!email) {
+      // If no email, open modal first
+      setSelectedTierPriceId(priceId);
+      setIsModalOpen(true);
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ priceId, email }),
+      });
+      const data = await response.json();
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    } catch (err: any) {
+      console.error('Checkout error:', err.message);
+    }
+  };
 
   const handleGetApiKey = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,6 +112,12 @@ export default function NeuralArchitectLanding() {
     setIsSubmitting(true);
     
     try {
+      // If a specific tier was selected before opening the modal, proceed to checkout
+      if (selectedTierPriceId) {
+        await handleCheckout(selectedTierPriceId);
+        return;
+      }
+
       const response = await generateApiKeyAction(email);
 
       if (!response.success) {
@@ -157,7 +196,7 @@ export default function NeuralArchitectLanding() {
               <div className="absolute -inset-1 rounded-xl bg-gradient-to-r from-cyan-500/20 to-blue-500/20 opacity-0 group-hover:opacity-100 blur transition duration-500" />
               <TerminalWindow title="request.sh">
                 <pre>
-                  <span className="text-pink-400">curl</span> <span className="text-gray-300">-X POST</span> https://api.neuralarch.ai/v1/analyze \<br/>
+                  <span className="text-pink-400">curl</span> <span className="text-gray-300">-X POST</span> https://symm.digital/api/v1/analyze \<br/>
                   &nbsp;&nbsp;<span className="text-gray-300">-H</span> <span className="text-green-300">"x-api-key: YOUR_API_KEY"</span> \<br/>
                   &nbsp;&nbsp;<span className="text-gray-300">-H</span> <span className="text-green-300">"Content-Type: application/json"</span> \<br/>
                   &nbsp;&nbsp;<span className="text-gray-300">-d</span> <span className="text-green-300">'{'{'}"handle": "target_prospect"{'}'}'</span>
@@ -229,7 +268,7 @@ export default function NeuralArchitectLanding() {
                 </ul>
 
                 <button 
-                  onClick={() => setIsModalOpen(true)}
+                  onClick={() => tier.priceId ? handleCheckout(tier.priceId) : setIsModalOpen(true)}
                   className={`w-full py-3 rounded-lg font-medium transition-colors ${
                     tier.isPopular 
                       ? 'bg-purple-600 hover:bg-purple-500 text-white' 
