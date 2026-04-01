@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import puppeteer from 'puppeteer-core';
 import chromium from '@sparticuz/chromium';
 
+export const maxDuration = 60; // Increase timeout to 60s (Pro) or max allowed (Hobby)
+export const dynamic = 'force-dynamic';
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
@@ -31,7 +34,9 @@ export async function POST(request: Request) {
       : 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
 
     browser = await puppeteer.launch({
-      args: isProd ? chromium.args : ['--no-sandbox', '--disable-setuid-sandbox'],
+      args: isProd 
+        ? [...chromium.args, '--no-sandbox', '--disable-setuid-sandbox'] 
+        : ['--no-sandbox', '--disable-setuid-sandbox'],
       defaultViewport: { width: 1280, height: 720 },
       executablePath: executablePath,
       headless: true,
