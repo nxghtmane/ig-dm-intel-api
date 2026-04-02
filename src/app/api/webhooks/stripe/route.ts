@@ -2,10 +2,11 @@ import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { supabaseAdmin } from '@/lib/supabase';
+import { sendApiKeyEmail } from '@/lib/email';
 
 export async function POST(request: Request) {
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: '2025-02-24-preview' as any,
+    apiVersion: '2024-12-18' as any,
   });
 
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -15,9 +16,9 @@ export async function POST(request: Request) {
   let event: Stripe.Event;
 
   try {
-    if (!webhookSecret) {
-      console.warn('Webhook secret missing. Verification skipped for testing.');
-      event = JSON.parse(body); // Only if you are testing locally without whsec
+    if (!webhookSecret || webhookSecret === 'whsec_placeholder') {
+      console.warn('Webhook secret missing or placeholder. Verification skipped for testing.');
+      event = JSON.parse(body);
     } else {
       event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
     }
@@ -36,15 +37,22 @@ export async function POST(request: Request) {
     if (userEmail && priceId) {
       // Logic for upgrading tiers
       let newLimit = 100; // Default
-      if (priceId === process.env.STRIPE_PRICE_GROWTH) newLimit = 10000;
-      if (priceId === process.env.STRIPE_PRICE_BUSINESS) newLimit = 25000;
+      let tierName = 'Starter';
+      if (priceId === process.env.STRIPE_PRICE_GROWTH) {
+        newLimit = 10000;
+        tierName = 'Growth';
+      }
+      if (priceId === process.env.STRIPE_PRICE_BUSINESS) {
+        newLimit = 25000;
+        tierName = 'Business';
+      }
 
       console.log(`Upgrading ${userEmail} to ${newLimit} requests.`);
 
       // Check if user already has a key
       const { data: existingKey } = await supabaseAdmin
         .from('api_keys')
-        .select('id')
+        .select('id, key')
         .eq('email', userEmail)
         .single();
 
@@ -55,7 +63,12 @@ export async function POST(request: Request) {
           .update({ requests_limit: newLimit })
           .eq('email', userEmail);
 
-        if (error) console.error('Supabase Update Error:', error.message);
+        if (error) {
+          console.error('Supabase Update Error:', error.message);
+        } else {
+          // Send notification email
+          await sendApiKeyEmail(userEmail, existingKey.key, tierName, newLimit);
+        }
       } else {
         // Generate new key for first-time buyer
         const newKey = `sk_live_${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`;
@@ -68,7 +81,12 @@ export async function POST(request: Request) {
             requests_used: 0
           }]);
 
-        if (error) console.error('Supabase Insert Error:', error.message);
+        if (error) {
+          console.error('Supabase Insert Error:', error.message);
+        } else {
+          // Send notification email
+          await sendApiKeyEmail(userEmail, newKey, tierName, newLimit);
+        }
       }
     }
   }

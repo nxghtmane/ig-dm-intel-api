@@ -187,7 +187,7 @@ export default function DocsPage() {
           <Section title="Base URL" id="base-url">
              <div className="flex items-center gap-4 p-4 rounded-xl bg-purple-500/5 border border-purple-500/10">
                 <Terminal className="w-5 h-5 text-purple-400" />
-                <code className="text-purple-300 text-sm">https://api.yourdomain.com/api/v1</code>
+                <code className="text-purple-300 text-sm">https://api.symm.digital/api/v1</code>
              </div>
           </Section>
 

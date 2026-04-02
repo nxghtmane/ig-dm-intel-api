@@ -2,8 +2,15 @@ import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
 export async function POST(request: Request) {
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: '2025-02-24-preview' as any,
+  const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+  
+  if (!stripeSecretKey) {
+    console.error('STRIPE_ERROR: Missing STRIPE_SECRET_KEY environment variable.');
+    return NextResponse.json({ error: 'Stripe is not configured on this server.' }, { status: 500 });
+  }
+
+  const stripe = new Stripe(stripeSecretKey, {
+    apiVersion: '2024-12-18' as any,
   });
 
   try {

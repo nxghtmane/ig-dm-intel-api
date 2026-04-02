@@ -116,9 +116,12 @@ function NeuralArchitectContent() {
       const data = await response.json();
       if (data.url) {
         window.location.href = data.url;
+      } else {
+        alert('Failed to connect to Stripe: ' + (data.error || 'Unknown error'));
       }
     } catch (err: any) {
       console.error('Checkout error:', err.message);
+      alert('Checkout error: ' + err.message);
     }
   };
 
@@ -150,9 +153,14 @@ function NeuralArchitectContent() {
       }
       setGeneratedKey(response.key!);
       setSubmitSuccess(true);
+      
+      if (response.isExisting) {
+          alert('Welcome back! We found an existing key for your email and have re-sent it to your inbox.');
+      }
     } catch (err: any) {
       console.error('Error handling key:', err.message);
-      alert('Error processing request. Please try again.');
+      // Detailed alert so the user knows EXACTLY what went wrong (e.g. "Database connection not configured")
+      alert('Action Failed: ' + (err.message || 'Unknown error occurred. Please try again.'));
     } finally {
       setIsSubmitting(false);
     }
@@ -209,7 +217,7 @@ function NeuralArchitectContent() {
               <div className="absolute -inset-1 rounded-xl bg-gradient-to-r from-cyan-500/20 to-blue-500/20 opacity-0 group-hover:opacity-100 blur transition duration-500" />
               <TerminalWindow title="request.sh">
                 <pre>
-                  <span className="text-pink-400">curl</span> <span className="text-gray-300">-X POST</span> https://api.yourdomain.com/api/v1/intent \<br/>
+                  <span className="text-pink-400">curl</span> <span className="text-gray-300">-X POST</span> https://api.symm.digital/api/v1/intent \<br/>
                   &nbsp;&nbsp;<span className="text-gray-300">-H</span> <span className="text-green-300">"x-api-key: YOUR_API_KEY"</span> \<br/>
                   &nbsp;&nbsp;<span className="text-gray-300">-H</span> <span className="text-green-300">"Content-Type: application/json"</span> \<br/>
                   &nbsp;&nbsp;<span className="text-gray-300">-d</span> <span className="text-green-300">'{'{'}"message_text": "I need help scaling my agency"{'}'}'</span>
@@ -372,29 +380,50 @@ function NeuralArchitectContent() {
               ) : (
                 <>
                   <div className="flex justify-center mb-6">
-                    <div className="p-3 bg-purple-500/10 rounded-xl border border-purple-500/20">
-                        <Zap className="w-8 h-8 text-purple-400" />
+                    <div className={`p-3 rounded-xl border ${selectedTierPriceId ? 'bg-cyan-500/10 border-cyan-500/20' : 'bg-purple-500/10 border-purple-500/20'}`}>
+                        {selectedTierPriceId ? (
+                            <Cpu className="w-8 h-8 text-cyan-400" />
+                        ) : (
+                            <Zap className="w-8 h-8 text-purple-400" />
+                        )}
                     </div>
                   </div>
-                  <h3 className="text-2xl font-bold mb-2 font-['Space_Grotesk'] text-white">Get Your API Key</h3>
+                  <h3 className="text-2xl font-bold mb-2 font-['Space_Grotesk'] text-white">
+                    {selectedTierPriceId ? 'Secure Checkout' : 'Get Your API Key'}
+                  </h3>
                   <p className="text-gray-400 mb-8 text-sm leading-relaxed">
-                    Enter your email address to generate your free <span className="text-cyan-400 font-bold">Starter</span> key.
+                    {selectedTierPriceId ? (
+                        <>Ready to upgrade? Enter your email below to proceed to the <strong>Secure Payment</strong> page.</>
+                    ) : (
+                        <>Enter your email address to generate your free <span className="text-cyan-400 font-bold">Starter</span> key.</>
+                    )}
                   </p>
                   <form onSubmit={handleGetApiKey} className="flex flex-col gap-4">
                     <input
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="developer@company.com"
+                      placeholder={selectedTierPriceId ? 'Your purchase email' : 'developer@company.com'}
                       required
                       className="w-full px-4 py-3 bg-black/50 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/50 text-white"
                     />
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full py-3 text-sm font-semibold text-white bg-purple-600 rounded-xl hover:bg-purple-500 disabled:opacity-70"
+                      className={`w-full py-3 text-sm font-semibold text-white rounded-xl transition-all ${
+                          selectedTierPriceId 
+                          ? 'bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500' 
+                          : 'bg-purple-600 hover:bg-purple-500'
+                      } disabled:opacity-70 flex items-center justify-center gap-2`}
                     >
-                      {isSubmitting ? <Loader2 className="w-4 h-4 mx-auto animate-spin" /> : 'Generate Free Key'}
+                      {isSubmitting ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                          <>
+                            {selectedTierPriceId ? 'Proceed to Payment' : 'Generate Free Key'}
+                            {selectedTierPriceId && <ChevronRight className="w-4 h-4" />}
+                          </>
+                      )}
                     </button>
                   </form>
                 </>
