@@ -1,0 +1,182 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Neural Architect API",
+    "description": "Premium Instagram DM intelligence and neural intent detection models. Automate lead scoring, profile analysis, and strategic insights for high-ticket sales scaling.",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Neural Architect Support",
+      "url": "https://symm.digital/docs",
+      "email": "support@symm.digital"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.symm.digital/api/v1",
+      "description": "Production server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-api-key"
+      }
+    }
+  },
+  "security": [
+    {
+      "ApiKeyAuth": []
+    }
+  ],
+  "paths": {
+    "/intent": {
+      "post": {
+        "summary": "Detect Buyer Intent",
+        "description": "Analyzes raw message text using neural models to determine lead quality, urgency, and recommended response.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "message_text": {
+                    "type": "string",
+                    "description": "The full text of the Instagram DM message."
+                  }
+                },
+                "required": ["message_text"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful analysis",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "intent_score": { "type": "integer" },
+                    "urgency": { "type": "string" },
+                    "recommended_response": { "type": "string" },
+                    "lead_status": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/profile": {
+      "post": {
+        "summary": "Analyze Prospect Profile",
+        "description": "Scours Instagram bio or profile data to score lead quality and niche alignment.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "profile_url": { "type": "string" },
+                  "bio_text": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful profile scoring",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "lead_score": { "type": "integer" },
+                    "detected_niche": { "type": "string" },
+                    "analysis_summary": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/insights": {
+      "post": {
+        "summary": "Generate Consultant Insights",
+        "description": "Predicts revenue size and strategic positioning for a prospect.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "profile_url": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful insight generation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "estimated_revenue": { "type": "string" },
+                    "lead_type": { "type": "string" },
+                    "recommendation": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/screenshot": {
+      "post": {
+        "summary": "Render Profile Screenshot",
+        "description": "Returns a real-time PNG/binary stream of the target profile.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "url": { "type": "string" }
+                },
+                "required": ["url"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "PNG Image stream",
+            "content": {
+              "image/png": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

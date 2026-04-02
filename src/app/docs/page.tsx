@@ -1,8 +1,30 @@
 'use client';
 
 import React from 'react';
-import { Terminal, Copy, ArrowLeft, Check, Zap, Shield, Activity, Globe } from 'lucide-react';
+import { Terminal, Copy, ArrowLeft, Check, Zap, Shield, Activity, Globe, Download, Code } from 'lucide-react';
 import Link from 'next/link';
+
+// JSON-LD Structured Data for AI Agents & Search Engines
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Neural Architect API Documentation",
+  "description": "Premium Instagram DM intelligence and neural intent detection models. Automate lead scoring, profile analysis, and strategic insights.",
+  "author": {
+    "@type": "Organization",
+    "name": "Neural Architect",
+    "url": "https://symm.digital"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Neural Architect",
+    "logo": "https://symm.digital/assets/logo.png"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://symm.digital/docs"
+  }
+};
 
 const Logo = () => (
   <div className="flex items-center gap-2">
@@ -84,6 +106,11 @@ const EndpointCard = ({ method, path, description, requestBody, responseBody }: 
 export default function DocsPage() {
   return (
     <div className="min-h-screen bg-[#0B0F19] text-white selection:bg-purple-500/30 font-['Inter']">
+      {/* Schema.org JSON-LD for AI Agents */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Background Gradients */}
       <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-0">
         <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-600/10 blur-[120px] rounded-full" />
@@ -98,13 +125,18 @@ export default function DocsPage() {
             <Logo />
           </Link>
           <div className="flex items-center gap-6">
+             <a 
+               href="/openapi.json" 
+               target="_blank" 
+               className="hidden border border-purple-500/30 text-purple-400 bg-purple-500/5 hover:bg-purple-500/10 md:flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg transition-all"
+             >
+                <Download className="w-3.5 h-3.5" />
+                <span>API Spec</span>
+             </a>
              <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/10 border border-green-500/20">
                 <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
                 <span className="text-[10px] font-bold text-green-500 uppercase tracking-widest leading-none">API Operational</span>
              </div>
-             <button className="px-4 py-2 text-xs font-semibold rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-all">
-                Status
-             </button>
           </div>
         </div>
       </header>
