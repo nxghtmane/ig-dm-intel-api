@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect, Suspense } from 'react';
 import { Terminal, Code2, Zap, Check, X, Loader2, Cpu, ChevronRight, Star, Sparkles } from 'lucide-react';
 import Link from 'next/link';
