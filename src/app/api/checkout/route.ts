@@ -9,9 +9,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Stripe is not configured on this server.' }, { status: 500 });
   }
 
-  const stripe = new Stripe(stripeSecretKey, {
-    apiVersion: '2024-12-18' as any,
-  });
+  const stripe = new Stripe(stripeSecretKey);
 
   try {
     const { priceId, email } = await request.json();

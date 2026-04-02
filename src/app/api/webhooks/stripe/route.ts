@@ -5,9 +5,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { sendApiKeyEmail } from '@/lib/email';
 
 export async function POST(request: Request) {
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: '2024-12-18' as any,
-  });
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
   const body = await request.text();
