@@ -27,3 +27,21 @@ export async function generateApiKeyAction(email: string) {
     return { success: false, error: 'Failed to generate key. Please try again.' };
   }
 }
+
+export async function getApiKeyByEmailAction(email: string) {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('api_keys')
+      .select('key, requests_used, requests_limit')
+      .eq('email', email)
+      .single();
+
+    if (error || !data) {
+      return { success: false, error: 'Key not found' };
+    }
+
+    return { success: true, data };
+  } catch (err: any) {
+    return { success: false, error: 'Database error' };
+  }
+}

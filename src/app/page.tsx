@@ -1,9 +1,8 @@
-'use client';
-
-import React, { useState } from 'react';
-import { Terminal, Code2, Zap, Check, X, Loader2, Cpu, ChevronRight } from 'lucide-react';
+import React, { useState, useEffect, Suspense } from 'react';
+import { Terminal, Code2, Zap, Check, X, Loader2, Cpu, ChevronRight, Star, Sparkles } from 'lucide-react';
 import Link from 'next/link';
-import { generateApiKeyAction } from './actions/api-keys';
+import { useSearchParams } from 'next/navigation';
+import { generateApiKeyAction, getApiKeyByEmailAction } from './actions/api-keys';
 
 // --- Types ---
 type PricingTier = {
@@ -73,17 +72,32 @@ const TerminalWindow = ({ title, children }: { title: string, children: React.Re
   </div>
 );
 
-export default function NeuralArchitectLanding() {
+function NeuralArchitectContent() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [generatedKey, setGeneratedKey] = useState('');
   const [selectedTierPriceId, setSelectedTierPriceId] = useState<string | null>(null);
+  
+  // Success state from stripe
+  const [purchaseSuccess, setPurchaseSuccess] = useState(false);
+  const [upgradedLimit, setUpgradedLimit] = useState<number | null>(null);
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const success = searchParams.get('success');
+    if (success === 'true') {
+        setPurchaseSuccess(true);
+        setIsModalOpen(true);
+        // Try to fetch the key if we have email in local storage or something
+        // For simplicity, we'll ask them to enter email to "recover" their upgraded key if needed
+        // but here we just show a success message
+    }
+  }, [searchParams]);
 
   const handleCheckout = async (priceId: string) => {
     if (!email) {
-      // If no email, open modal first
       setSelectedTierPriceId(priceId);
       setIsModalOpen(true);
       return;
@@ -113,23 +127,30 @@ export default function NeuralArchitectLanding() {
     setIsSubmitting(true);
     
     try {
-      // If a specific tier was selected before opening the modal, proceed to checkout
       if (selectedTierPriceId) {
         await handleCheckout(selectedTierPriceId);
         return;
       }
 
-      const response = await generateApiKeyAction(email);
+      // Check if they are successful buyers looking for their key
+      const result = await getApiKeyByEmailAction(email);
+      if (result.success && result.data) {
+          setGeneratedKey(result.data.key);
+          setUpgradedLimit(result.data.requests_limit);
+          setSubmitSuccess(true);
+          return;
+      }
 
+      // Otherwise generate a new one
+      const response = await generateApiKeyAction(email);
       if (!response.success) {
         throw new Error(response.error);
       }
-
       setGeneratedKey(response.key!);
       setSubmitSuccess(true);
     } catch (err: any) {
-      console.error('Error generating key:', err.message);
-      alert('Error generating key. Please try again.');
+      console.error('Error handling key:', err.message);
+      alert('Error processing request. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -138,7 +159,6 @@ export default function NeuralArchitectLanding() {
   return (
     <div className="min-h-screen bg-[#0B0F19] text-white selection:bg-purple-500/30 font-['Inter']">
       
-      {/* Extremely Minimal Header */}
       <header className="absolute top-0 left-0 right-0 p-6 md:p-8 flex justify-between items-center z-40 max-w-7xl mx-auto">
         <Logo />
         <button 
@@ -150,15 +170,10 @@ export default function NeuralArchitectLanding() {
       </header>
 
       <main className="relative flex flex-col items-center justify-center px-6 pt-32 pb-24 mx-auto max-w-7xl lg:pt-48">
-        
-        {/* Background Glow */}
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-purple-600/20 blur-[120px] rounded-full pointer-events-none" />
 
-        {/* Hero Section */}
         <div className="relative z-10 flex flex-col items-center max-w-4xl text-center">
-          <h1 
-            className="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 leading-tight font-['Space_Grotesk']"
-          >
+          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 leading-tight font-['Space_Grotesk']">
             Automate Your <br className="hidden md:block" />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500">
               Instagram Intelligence
@@ -186,46 +201,37 @@ export default function NeuralArchitectLanding() {
           </div>
         </div>
 
-        {/* Code Demo Section */}
         <div id="docs" className="relative z-10 w-full mt-24 lg:mt-32">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-            
-            {/* cURL Request */}
             <div className="group relative">
               <div className="absolute -inset-1 rounded-xl bg-gradient-to-r from-cyan-500/20 to-blue-500/20 opacity-0 group-hover:opacity-100 blur transition duration-500" />
               <TerminalWindow title="request.sh">
                 <pre>
-                  <span className="text-pink-400">curl</span> <span className="text-gray-300">-X POST</span> https://symm.digital/api/v1/analyze \<br/>
+                  <span className="text-pink-400">curl</span> <span className="text-gray-300">-X POST</span> https://api.yourdomain.com/api/v1/intent \<br/>
                   &nbsp;&nbsp;<span className="text-gray-300">-H</span> <span className="text-green-300">"x-api-key: YOUR_API_KEY"</span> \<br/>
                   &nbsp;&nbsp;<span className="text-gray-300">-H</span> <span className="text-green-300">"Content-Type: application/json"</span> \<br/>
-                  &nbsp;&nbsp;<span className="text-gray-300">-d</span> <span className="text-green-300">'{'{'}"handle": "target_prospect"{'}'}'</span>
+                  &nbsp;&nbsp;<span className="text-gray-300">-d</span> <span className="text-green-300">'{'{'}"message_text": "I need help scaling my agency"{'}'}'</span>
                 </pre>
               </TerminalWindow>
             </div>
 
-            {/* JSON Response */}
             <div className="group relative">
               <div className="absolute -inset-1 rounded-xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 blur transition duration-500" />
               <TerminalWindow title="response.json">
                 <pre>
                   <span className="text-gray-300">{'{'}</span><br/>
-                  &nbsp;&nbsp;<span className="text-blue-300">"status"</span>: <span className="text-green-300">"success"</span>,<br/>
-                  &nbsp;&nbsp;<span className="text-blue-300">"data"</span>: {'{'}<br/>
-                  &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-blue-300">"handle"</span>: <span className="text-green-300">"target_prospect"</span>,<br/>
-                  &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-blue-300">"intent_score"</span>: <span className="text-purple-400">87</span>,<br/>
-                  &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-blue-300">"niche"</span>: <span className="text-green-300">"B2B SaaS Consulting"</span>,<br/>
-                  &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-blue-300">"pain_points"</span>: [<span className="text-green-300">"Lead gen bottlenecks"</span>, <span className="text-green-300">"High churn"</span>],<br/>
-                  &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-blue-300">"suggested_opener"</span>: <span className="text-green-300">"Hey [Name], I noticed..."</span><br/>
-                  &nbsp;&nbsp;{'}'}<br/>
+                  &nbsp;&nbsp;<span className="text-blue-300">"intent_score"</span>: <span className="text-purple-400">88</span>,<br/>
+                  &nbsp;&nbsp;<span className="text-blue-300">"urgency"</span>: <span className="text-green-300">"high"</span>,<br/>
+                  &nbsp;&nbsp;<span className="text-blue-300">"budget_signals"</span>: <span className="text-green-300">"detected"</span>,<br/>
+                  &nbsp;&nbsp;<span className="text-blue-300">"recommended_response"</span>: <span className="text-green-300">"Are you free for a sync?"</span>,<br/>
+                  &nbsp;&nbsp;<span className="text-blue-300">"lead_status"</span>: <span className="text-green-300">"Hot"</span><br/>
                   <span className="text-gray-300">{'}'}</span>
                 </pre>
               </TerminalWindow>
             </div>
-
           </div>
         </div>
 
-        {/* Pricing Section */}
         <div className="relative z-10 w-full mt-32">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4 font-['Space_Grotesk'] text-white">
@@ -283,47 +289,72 @@ export default function NeuralArchitectLanding() {
 
       </main>
 
-      {/* Footer (Minimalist) */}
-      <footer className="border-t border-white/10 py-8 text-center">
+      <footer className="border-t border-white/10 py-8 text-center bg-[#050812]">
         <p className="text-sm text-gray-600">© 2026 Neural Architect API. Built for high-ticket setters.</p>
       </footer>
 
-      {/* API Key Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
           <div 
             className="relative w-full max-w-md p-8 overflow-hidden bg-[#0a0d14] border border-white/10 rounded-2xl shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Modal Glow */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200px] h-[100px] bg-purple-600/30 blur-[60px] pointer-events-none" />
 
             <button 
-              onClick={() => setIsModalOpen(false)}
+              onClick={() => {
+                  setIsModalOpen(false);
+                  setPurchaseSuccess(false);
+                  setSubmitSuccess(false);
+                  setEmail('');
+              }}
               className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <div className="relative z-10">
-              <div className="flex justify-center mb-6">
-                 <div className="p-3 bg-purple-500/10 rounded-xl border border-purple-500/20">
-                    <Zap className="w-8 h-8 text-purple-400" />
-                 </div>
-              </div>
-              
-              <h3 className="text-2xl font-bold text-center mb-2 font-['Space_Grotesk'] text-white">
-                Get Your API Key
-              </h3>
-              <p className="text-center text-gray-400 mb-8 text-sm leading-relaxed">
-                Enter your email address to generate your free <span className="text-cyan-400 font-bold">Starter</span> key. 
-                Your key will be displayed immediately.
-              </p>
-
-              {submitSuccess ? (
-                <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-xl text-center">
-                  <p className="text-green-400 font-medium mb-4">API Key Generated Successfully!</p>
-                  <code className="block p-3 bg-black/50 border border-white/10 rounded-lg text-xs break-all text-gray-300 font-mono">
+            <div className="relative z-10 text-center">
+              {purchaseSuccess && !submitSuccess ? (
+                <>
+                  <div className="flex justify-center mb-6">
+                    <div className="p-3 bg-green-500/10 rounded-xl border border-green-500/20">
+                        <Sparkles className="w-8 h-8 text-green-400" />
+                    </div>
+                  </div>
+                  <h3 className="text-2xl font-bold mb-2 font-['Space_Grotesk'] text-white">Upgrade Successful!</h3>
+                  <p className="text-gray-400 mb-8 text-sm leading-relaxed">
+                    Thank you for your purchase. Please enter your email below to retrieve your <span className="text-purple-400 font-bold uppercase">Upgraded API Key</span>.
+                  </p>
+                  <form onSubmit={handleGetApiKey} className="flex flex-col gap-4">
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="Enter purchase email"
+                      required
+                      className="w-full px-4 py-3 bg-black/50 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/50 text-white"
+                    />
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="w-full py-3 text-sm font-semibold text-white bg-purple-600 rounded-xl hover:bg-purple-500 disabled:opacity-70"
+                    >
+                      {isSubmitting ? <Loader2 className="w-4 h-4 mx-auto animate-spin" /> : 'Retrieve Upgraded Key'}
+                    </button>
+                  </form>
+                </>
+              ) : submitSuccess ? (
+                <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-xl">
+                  {upgradedLimit ? (
+                      <div className="mb-4 flex items-center justify-center gap-2 text-cyan-400 font-mono text-xs uppercase tracking-widest">
+                          <Star className="w-3 h-3" />
+                          Limit Upgraded: {upgradedLimit.toLocaleString()} Requests
+                          <Star className="w-3 h-3" />
+                      </div>
+                  ) : (
+                      <p className="text-green-400 font-medium mb-4">API Key Secured!</p>
+                  )}
+                  <code className="block p-3 bg-black/50 border border-white/10 rounded-lg text-xs break-all text-gray-300 font-mono mb-4 text-left">
                     {generatedKey}
                   </code>
                   <button 
@@ -331,43 +362,43 @@ export default function NeuralArchitectLanding() {
                         navigator.clipboard.writeText(generatedKey);
                         alert('Copied to clipboard!');
                     }}
-                    className="mt-4 text-xs text-purple-400 hover:text-purple-300 font-medium uppercase tracking-wider"
+                    className="w-full py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-xs text-purple-400 font-medium uppercase tracking-wider transition-all"
                   >
                     Copy to Clipboard
                   </button>
                 </div>
               ) : (
-                <form onSubmit={handleGetApiKey} className="flex flex-col gap-4">
-                  <div>
-                    <label htmlFor="email" className="sr-only">Email address</label>
+                <>
+                  <div className="flex justify-center mb-6">
+                    <div className="p-3 bg-purple-500/10 rounded-xl border border-purple-500/20">
+                        <Zap className="w-8 h-8 text-purple-400" />
+                    </div>
+                  </div>
+                  <h3 className="text-2xl font-bold mb-2 font-['Space_Grotesk'] text-white">Get Your API Key</h3>
+                  <p className="text-gray-400 mb-8 text-sm leading-relaxed">
+                    Enter your email address to generate your free <span className="text-cyan-400 font-bold">Starter</span> key.
+                  </p>
+                  <form onSubmit={handleGetApiKey} className="flex flex-col gap-4">
                     <input
                       type="email"
-                      id="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="developer@company.com"
                       required
-                      className="w-full px-4 py-3 bg-black/50 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/50 text-white placeholder-gray-500 transition-all font-sans"
+                      className="w-full px-4 py-3 bg-black/50 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/50 text-white"
                     />
-                  </div>
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="flex items-center justify-center w-full py-3 text-sm font-semibold text-white transition-all bg-purple-600 rounded-xl hover:bg-purple-500 disabled:opacity-70 disabled:cursor-not-allowed shadow-[0_4px_20px_rgba(157,80,255,0.3)]"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Generating Your Key...
-                      </>
-                    ) : (
-                      'Generate Free Key'
-                    )}
-                  </button>
-                </form>
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="w-full py-3 text-sm font-semibold text-white bg-purple-600 rounded-xl hover:bg-purple-500 disabled:opacity-70"
+                    >
+                      {isSubmitting ? <Loader2 className="w-4 h-4 mx-auto animate-spin" /> : 'Generate Free Key'}
+                    </button>
+                  </form>
+                </>
               )}
               
-              <p className="mt-6 text-[10px] text-center text-gray-600 uppercase tracking-widest">
+              <p className="mt-6 text-[10px] text-gray-600 uppercase tracking-widest">
                 Protected by Neural Architect Security
               </p>
             </div>
@@ -375,5 +406,13 @@ export default function NeuralArchitectLanding() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function NeuralArchitectLanding() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#0B0F19] flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-purple-500" /></div>}>
+      <NeuralArchitectContent />
+    </Suspense>
   );
 }

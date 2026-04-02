@@ -41,13 +41,34 @@ export async function POST(request: Request) {
 
       console.log(`Upgrading ${userEmail} to ${newLimit} requests.`);
 
-      const { error } = await supabaseAdmin
+      // Check if user already has a key
+      const { data: existingKey } = await supabaseAdmin
         .from('api_keys')
-        .update({ requests_limit: newLimit })
-        .eq('email', userEmail);
+        .select('id')
+        .eq('email', userEmail)
+        .single();
 
-      if (error) {
-        console.error('Supabase Error:', error.message);
+      if (existingKey) {
+        // Update existing key
+        const { error } = await supabaseAdmin
+          .from('api_keys')
+          .update({ requests_limit: newLimit })
+          .eq('email', userEmail);
+
+        if (error) console.error('Supabase Update Error:', error.message);
+      } else {
+        // Generate new key for first-time buyer
+        const newKey = `sk_live_${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`;
+        const { error } = await supabaseAdmin
+          .from('api_keys')
+          .insert([{ 
+            email: userEmail, 
+            key: newKey, 
+            requests_limit: newLimit,
+            requests_used: 0
+          }]);
+
+        if (error) console.error('Supabase Insert Error:', error.message);
       }
     }
   }
