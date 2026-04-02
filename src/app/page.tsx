@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Terminal, Code2, Zap, Check, X, Loader2, Cpu, ChevronRight } from 'lucide-react';
+import Link from 'next/link';
 import { generateApiKeyAction } from './actions/api-keys';
 
 // --- Types ---
@@ -176,14 +177,12 @@ export default function NeuralArchitectLanding() {
               Get API Key
               <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </button>
-            <a 
-              href="https://github.com/nxghtmane/ig-dm-intel-api"
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link 
+              href="/docs"
               className="flex items-center justify-center gap-2 px-8 py-4 text-base font-semibold text-gray-300 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-colors"
             >
               Read Documentation
-            </a>
+            </Link>
           </div>
         </div>
 

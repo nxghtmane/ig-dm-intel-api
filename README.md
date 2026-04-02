@@ -1,5 +1,7 @@
 # Neural Architect - IG Appointment Setting Intelligence API
 
+[**Full API Documentation**](file:///c:/Users/Sangi/Documents/API%27S/ig-dm-intel-api/API_DOCUMENTATION.md)
+
 The ultimate intelligence layer for Instagram high-ticket appointment setting. Identify ideal avatars, detect intent, and scale your outreach with precision.
 
 ## 🚀 Key Features
